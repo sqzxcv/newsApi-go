@@ -2,6 +2,7 @@ package newsapi
 
 import (
 	"fmt"
+	"github.com/sqzxcv/glog"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -20,7 +21,7 @@ var (
 	defaultNewsApi = &newsApi{
 		language: "en",
 		location: "US",
-		limit:    10,
+		limit:    0,
 		client:   http.DefaultClient,
 	}
 
@@ -39,6 +40,7 @@ type newsApi struct {
 	endDate   *time.Time
 	limit     int
 	client    *http.Client
+	useragent string
 }
 
 func NewNewsApi(options ...NewsApiOption) *newsApi {
@@ -105,7 +107,7 @@ func (n *newsApi) composeURL(path string, query string) url.URL {
 	if query != "" {
 		q.Set("q", query)
 		if n.period != nil {
-			q.Set("q", q.Get("q")+"+when:"+FormatDuration(*n.period))
+			q.Set("q", q.Get("q")+" when:"+FormatDuration(*n.period))
 		}
 		if n.endDate != nil {
 			q.Set("q", q.Get("q")+"+before:"+n.endDate.Format("2006-01-02"))
@@ -114,13 +116,14 @@ func (n *newsApi) composeURL(path string, query string) url.URL {
 			q.Set("q", q.Get("q")+"+after:"+n.startDate.Format("2006-01-02"))
 		}
 	}
-	searchURL.RawQuery = q.Encode()
+	searchURL.RawQuery = strings.Replace(q.Encode(), "+", "%20", -1)
 	return searchURL
 }
 
 // getNews gets the news by path and query
 func (n *newsApi) getNews(path, query string) ([]*News, error) {
 	searchURL := n.composeURL(path, query)
+	glog.Info("searchURL: ", searchURL.String())
 	req, err := http.NewRequest(http.MethodGet, searchURL.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %w", err)

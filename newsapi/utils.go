@@ -297,7 +297,7 @@ func FormatDuration(duration time.Duration) string {
 		formatted += fmt.Sprintf("%dm", minutes)
 	}
 
-	return formatted
+	return strings.TrimSpace(formatted)
 }
 
 var (

@@ -85,6 +85,12 @@ func WithProxy(proxy *url.URL) NewsApiOption {
 	}
 }
 
+func WithUserAgent(useragent string) NewsApiOption {
+	return func(n *newsApi) {
+		n.useragent = useragent
+	}
+}
+
 func WithoutProxy() NewsApiOption {
 	return func(n *newsApi) {
 		n.client = nil
